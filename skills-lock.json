@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "skills": {
+    "design-taste-frontend-v1": {
+      "source": "Leonxlnx/taste-skill-classics",
+      "sourceType": "github",
+      "skillPath": "skills/taste-skill-v1/SKILL.md",
+      "computedHash": "615570ecfb77222d30db9c12ad4a35cd2b687870385a6cd9dffc4f8815a4d972"
+    },
+    "emil-design-eng": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/emil-design-eng/SKILL.md",
+      "computedHash": "55735a70a886326ee8ba1dd4d1ee040e4e9503a536891467e4ed7e114a69b0dd"
+    }
+  }
+}

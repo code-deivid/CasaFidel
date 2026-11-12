@@ -1,0 +1,68 @@
+// Tokens visuales de Casa Fidel.
+// Los colores, tipografías y espacios se definen solo aquí.
+// Contrastes comprobados (WCAG 2.2 AA) en la tabla de DESIGN.md.
+
+:root {
+  // Suelos (de más a menos luz)
+  --color-blanco: #ffffff; // franja de fotos de la casa
+  --color-hueso: #faf9f6; // suelo general
+  --color-marfil: #f5f0e8; // el papel de la carta
+  --color-marfil-shade: #ebe3d6; // hover sobre marfil
+
+  // Tinta
+  --color-carbon: #26211f; // texto principal
+  --color-piedra-ink: #66635a; // texto secundario sobre claros
+  --color-granate: #640e0f; // identidad: monograma, categorías, acción
+  --color-granate-deep: #4c0a0b; // hover del botón sólido
+  --color-on-granate: #f5f0e8; // texto sobre el campo granate
+  --color-on-granate-muted: #e3c9c2; // texto secundario sobre granate
+
+  // Líneas
+  --line: rgb(38 33 31 / 0.14);
+  --line-strong: rgb(38 33 31 / 0.8);
+  --line-on-granate: rgb(245 240 232 / 0.24);
+
+  // Tipografía
+  // Gloock: titulares editoriales. Antonio: la voz condensada de la carta impresa
+  // (categorías y precios). DM Sans: todo lo que se lee o se pulsa.
+  --font-display: 'Gloock', 'Iowan Old Style', Georgia, serif;
+  --font-carta: 'Antonio Variable', 'Arial Narrow', sans-serif-condensed, sans-serif;
+  --font-text: 'DM Sans Variable', 'DM Sans', system-ui, sans-serif;
+
+  --text-xs: 0.8125rem; // 13px
+  --text-sm: 0.9375rem; // 15px
+  --text-base: 1.0625rem; // 17px
+  --text-lg: 1.1875rem; // 19px
+  --text-xl: clamp(1.375rem, 1.15rem + 0.8vw, 1.75rem);
+  --text-2xl: clamp(1.75rem, 1.3rem + 1.6vw, 2.5rem);
+  --text-3xl: clamp(2.25rem, 1.5rem + 2.8vw, 3.75rem);
+  --text-display: clamp(2.875rem, 1.5rem + 5.4vw, 6rem);
+
+  // Espaciado (escala de 4 px)
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+  --space-10: 8rem;
+  --section-padding: clamp(4.5rem, 2.5rem + 6vw, 8.5rem);
+
+  // Maquetación
+  --page-max: 86rem;
+  --page-gutter: clamp(1.25rem, 0.5rem + 3vw, 3rem);
+  --header-height: 4.5rem;
+
+  // Forma
+  --radius: 2px;
+
+  // Movimiento (emil-design-eng)
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --duration-press: 160ms;
+  --duration-ui: 200ms;
+  --duration-reveal: 1000ms;
+}

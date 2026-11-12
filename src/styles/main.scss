@@ -1,0 +1,97 @@
+@use 'tokens';
+@use 'mixins' as *;
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  // Los anclajes no quedan tapados por la cabecera fija.
+  scroll-padding-top: calc(var(--header-height) + var(--space-4));
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-hueso);
+  color: var(--color-carbon);
+  font-family: var(--font-text);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+ul,
+ol,
+dl,
+dd,
+figure {
+  margin: 0;
+}
+
+ul,
+ol {
+  padding: 0;
+  list-style: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+a {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.25em;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+// Superficies del navegador con la paleta de la casa
+::selection {
+  background: var(--color-granate);
+  color: var(--color-on-granate);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-granate);
+  outline-offset: 3px;
+  border-radius: var(--radius);
+}
+
+html {
+  scrollbar-color: var(--color-granate) var(--color-marfil);
+}
+
+// Números alineados en precios y datos (Antonio trae cifras tabulares).
+.tabular {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.visually-hidden {
+  @include visually-hidden;
+}
+
+// Con movimiento reducido cada componente quita los desplazamientos
+// y conserva solo los fundidos de opacidad.
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
