@@ -64,8 +64,6 @@ export default {
       previous: 'Anterior',
       next: 'Siguiente',
       goTo: 'Ver la foto {current} de {total}',
-      pause: 'Pausar el pase de fotos',
-      play: 'Reanudar el pase de fotos',
     },
   },
 

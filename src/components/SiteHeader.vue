@@ -123,24 +123,23 @@ onBeforeUnmount(() => {
         :aria-label="isMenuOpen ? t('nav.close') : t('nav.open')"
         @click="toggleMenu"
       >
+        <!-- Dos iconos fijos en el mismo marco de 24: dos líneas (cerrado) y una X
+             de dos diagonales simétricas centradas en (12, 12) (abierto). -->
         <svg
+          v-if="isMenuOpen"
           class="site-header__toggle-icon"
-          :class="{ 'is-open': isMenuOpen }"
           viewBox="0 0 24 24"
           aria-hidden="true"
         >
-          <line
-            x1="4"
-            y1="9"
-            x2="20"
-            y2="9"
-          />
-          <line
-            x1="4"
-            y1="15"
-            x2="20"
-            y2="15"
-          />
+          <path d="M5.5 5.5l13 13M18.5 5.5l-13 13" />
+        </svg>
+        <svg
+          v-else
+          class="site-header__toggle-icon"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path d="M4 9h16M4 15h16" />
         </svg>
       </button>
     </div>
@@ -335,23 +334,13 @@ onBeforeUnmount(() => {
 }
 
 .site-header__toggle-icon {
+  display: block;
   width: 1.25rem;
   height: 1.25rem;
+  fill: none;
   stroke: currentColor;
   stroke-width: 1.5;
-
-  line {
-    transform-origin: center;
-    transition: transform var(--duration-ui) var(--ease-out);
-  }
-
-  &.is-open line:first-child {
-    transform: translateY(3px) rotate(45deg);
-  }
-
-  &.is-open line:last-child {
-    transform: translateY(-3px) rotate(-45deg);
-  }
+  stroke-linecap: round;
 }
 
 .site-header__panel {

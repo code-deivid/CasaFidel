@@ -60,8 +60,6 @@ const pt: MessageSchema = {
       previous: 'Anterior',
       next: 'Seguinte',
       goTo: 'Ver a foto {current} de {total}',
-      pause: 'Pausar a apresentação',
-      play: 'Retomar a apresentação',
     },
   },
 

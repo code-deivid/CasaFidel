@@ -16,6 +16,13 @@ const { t } = useI18n()
     aria-labelledby="visit-title"
   >
     <div class="visit__inner">
+      <h2
+        id="visit-title"
+        class="visit__title"
+      >
+        {{ t('visit.title') }}
+      </h2>
+
       <!-- Fidel ha autorizado el uso de sus imágenes. Sin nombres ni cargos en el pie. -->
       <div class="visit__photo">
         <ResponsiveImage
@@ -26,13 +33,6 @@ const { t } = useI18n()
       </div>
 
       <div class="visit__main">
-        <h2
-          id="visit-title"
-          class="visit__title"
-        >
-          {{ t('visit.title') }}
-        </h2>
-
         <address class="visit__address">
           {{ site.address.street }}<br>
           {{ site.address.postalCode }} {{ site.address.town }}, {{ site.address.province }}
@@ -77,15 +77,30 @@ const { t } = useI18n()
   background: var(--color-blanco);
 }
 
+// Escritorio: a la izquierda, «Visítanos» y debajo la foto; a la derecha, desde
+// arriba, dirección, acciones y horario. Así las dos columnas miden parecido
+// y la foto no deja un hueco bajo ella. Móvil: título, foto y datos.
 .visit__inner {
   @include page-container;
   display: grid;
-  gap: var(--space-7);
+  gap: var(--space-6);
 
   @include from('lg') {
     grid-template-columns: repeat(12, minmax(0, 1fr));
+    // La fila del título no crece: la altura sobrante de la columna derecha va a la de la foto.
+    grid-template-rows: auto 1fr;
     column-gap: var(--space-6);
+    row-gap: var(--space-6);
     align-items: start;
+  }
+}
+
+.visit__title {
+  @include display-heading(var(--text-display));
+
+  @include from('lg') {
+    grid-column: 1 / span 7;
+    grid-row: 1;
   }
 }
 
@@ -96,29 +111,34 @@ const { t } = useI18n()
     aspect-ratio: 3 / 2;
   }
 
+  // Entre 64 y 80rem la columna de datos es estrecha y más alta: la foto toma
+  // siete columnas para no quedarse corta a su lado.
   @include from('lg') {
-    grid-column: 1 / span 6;
+    grid-column: 1 / span 7;
+    grid-row: 2;
     aspect-ratio: 5 / 4;
-    position: sticky;
-    top: calc(var(--header-height) + var(--space-6));
+  }
+
+  @include from('xl') {
+    grid-column: 1 / span 6;
   }
 }
 
 .visit__main {
   display: grid;
   justify-items: start;
+  margin-top: var(--space-2);
 
   @include from('lg') {
     grid-column: 8 / span 5;
+    grid-row: 1 / span 2;
+    margin-top: 0;
+    // La dirección arranca a la altura de las mayúsculas de «Visítanos».
+    padding-top: var(--space-3);
   }
 }
 
-.visit__title {
-  @include display-heading(var(--text-display));
-}
-
 .visit__address {
-  margin-top: var(--space-6);
   font-family: var(--font-display);
   font-size: var(--text-2xl);
   font-style: normal;

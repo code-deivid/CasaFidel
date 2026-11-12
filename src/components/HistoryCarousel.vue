@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ResponsiveImage from './ui/ResponsiveImage.vue'
 import { historySlides } from '@/data/images'
@@ -10,17 +10,14 @@ import { historySlides } from '@/data/images'
 //   en móvil se desliza con el dedo, sin JavaScript de gestos. Una foto entera
 //   por vez, sin la siguiente asomando.
 // - Móvil y tableta (< 64rem): puntos de paginación y «1 / 4», sin botones.
-//   Escritorio: «Anterior», «Siguiente», contador y pausa.
+//   Escritorio: «Anterior», «Siguiente» y contador.
 // - Bucle sin saltos: tras la última foto va una copia de la primera
 //   (oculta a lectores de pantalla). Al llegar a la copia, la pista vuelve a la
 //   primera real sin animación; visualmente es la misma imagen.
-// - Pase automático solo en escritorio (≥ 64rem) y sin «movimiento reducido»:
-//   una foto cada 7 s, de derecha a izquierda. Se detiene mientras el ratón
-//   está encima, mientras se navega con el teclado dentro, fuera de pantalla y
-//   con la pestaña oculta. Tras una interacción manual la cuenta vuelve a empezar.
-//   El botón de pausa lo detiene del todo (WCAG 2.2.2).
+// - Sin pase automático: sin un botón de pausa no cumpliría WCAG 2.2.2
+//   (pausar al pasar el ratón o al enfocar no basta). Solo se mueve cuando el
+//   visitante lo pide.
 
-const AUTOPLAY_DELAY = 7000
 const SLIDE_DURATION = 700
 
 const { t } = useI18n()
@@ -28,31 +25,11 @@ const { t } = useI18n()
 const slides = historySlides
 const total = slides.length
 
-const root = useTemplateRef<HTMLElement>('root')
 const track = useTemplateRef<HTMLElement>('track')
 
 const index = ref(0)
 const announcement = ref('')
-
-// Condiciones del pase automático.
-const isDesktop = ref(false)
 const prefersReducedMotion = ref(false)
-const isPausedByUser = ref(false)
-const isHovered = ref(false)
-const hasKeyboardFocus = ref(false)
-const isOnScreen = ref(false)
-const isPageVisible = ref(true)
-
-const canAutoplay = computed(() => isDesktop.value && !prefersReducedMotion.value)
-const isPlaying = computed(
-  () =>
-    canAutoplay.value &&
-    !isPausedByUser.value &&
-    !isHovered.value &&
-    !hasKeyboardFocus.value &&
-    isOnScreen.value &&
-    isPageVisible.value,
-)
 
 function slideElements(): HTMLElement[] {
   return [...(track.value?.querySelectorAll<HTMLElement>('.carousel__slide') ?? [])]
@@ -66,6 +43,17 @@ function offsetOf(i: number): number {
   if (!first || !target || !track.value) return 0
   const max = track.value.scrollWidth - track.value.clientWidth
   return Math.min(target.offsetLeft - first.offsetLeft, max)
+}
+
+/** Diapositiva (incluida la copia) más cercana a la posición actual. */
+function nearestSlide(): number {
+  const left = track.value?.scrollLeft ?? 0
+  const positions = slideElements().map((_, i) => offsetOf(i))
+  let nearest = 0
+  positions.forEach((position, i) => {
+    if (Math.abs(position - left) < Math.abs((positions[nearest] ?? 0) - left)) nearest = i
+  })
+  return nearest
 }
 
 // ── Movimiento ──────────────────────────────────────────────────────────────
@@ -96,7 +84,7 @@ function animateTo(left: number) {
   if (!el) return
   if (prefersReducedMotion.value) {
     jumpTo(left)
-    settle()
+    normalize()
     return
   }
 
@@ -116,36 +104,59 @@ function animateTo(left: number) {
     } else {
       isAnimating = false
       el.style.scrollSnapType = ''
-      settle()
+      normalize()
     }
   }
   frame = requestAnimationFrame(step)
 }
 
-/** Cuando la pista se detiene: fija el índice y, si estamos en la copia, vuelve a la primera. */
-function settle() {
+// ── Índice durante el desplazamiento ────────────────────────────────────────
+// Dos tareas separadas:
+// 1. Indicador (puntos y contador): se recalcula como mucho una vez por
+//    fotograma mientras la pista se mueve, sin esperar a que pare. La
+//    diapositiva predominante es la más cercana; para cambiar, la nueva tiene
+//    que estar claramente más cerca (un 10% del ancho) que la marcada, así no
+//    parpadea cuando dos fotos se ven a medias.
+// 2. Normalización: cuando la pista lleva 140 ms quieta, si se ha quedado en la
+//    copia de la primera foto, salta sin animación a la primera real.
+
+let indicatorFrame = 0
+let normalizeTimer = 0
+let shownSlide = 0 // diapositiva marcada, contando la copia (0…total)
+
+function updateIndicator() {
+  indicatorFrame = 0
   const el = track.value
-  if (!el || isAnimating) return
-  const positions = slideElements().map((_, i) => offsetOf(i))
-  let nearest = 0
-  positions.forEach((position, i) => {
-    if (Math.abs(position - el.scrollLeft) < Math.abs((positions[nearest] ?? 0) - el.scrollLeft)) {
-      nearest = i
-    }
-  })
+  if (!el) return
+  const left = el.scrollLeft
+  const candidate = nearestSlide()
+  if (candidate !== shownSlide) {
+    const hysteresis = el.clientWidth * 0.1
+    const distanceTo = (i: number) => Math.abs(offsetOf(i) - left)
+    if (distanceTo(candidate) >= distanceTo(shownSlide) - hysteresis) return
+    shownSlide = candidate
+  }
+  index.value = shownSlide % total
+}
+
+/** Al terminar el desplazamiento: fija el índice y sale de la copia del bucle. */
+function normalize() {
+  if (isAnimating) return
+  let nearest = nearestSlide()
   if (nearest === total) {
     jumpTo(0)
     nearest = 0
   }
+  shownSlide = nearest
   index.value = nearest
-  restartTimer()
 }
 
-let settleTimer = 0
 function onScroll() {
+  // Durante las animaciones de los botones y los puntos el índice ya es el de destino.
   if (isAnimating) return
-  window.clearTimeout(settleTimer)
-  settleTimer = window.setTimeout(settle, 140)
+  if (!indicatorFrame) indicatorFrame = requestAnimationFrame(updateIndicator)
+  window.clearTimeout(normalizeTimer)
+  normalizeTimer = window.setTimeout(normalize, 140)
 }
 
 // Si el visitante toca o usa la rueda en mitad de una animación, manda él.
@@ -156,9 +167,12 @@ function onUserScrollIntent() {
   }
 }
 
+// ── Navegación ──────────────────────────────────────────────────────────────
+
 function next() {
   const target = index.value + 1
   index.value = target % total
+  shownSlide = target
   animateTo(offsetOf(target))
 }
 
@@ -170,12 +184,14 @@ function previous() {
   } else {
     index.value -= 1
   }
+  shownSlide = index.value
   animateTo(offsetOf(index.value))
 }
 
 function goTo(target: number) {
   if (target === index.value) return
   index.value = target
+  shownSlide = target
   animateTo(offsetOf(target))
 }
 
@@ -210,63 +226,19 @@ function onTrackKeydown(event: KeyboardEvent) {
   event.preventDefault()
 }
 
-// ── Pase automático ─────────────────────────────────────────────────────────
-
-let autoplayTimer = 0
-
-function restartTimer() {
-  window.clearTimeout(autoplayTimer)
-  if (isPlaying.value) autoplayTimer = window.setTimeout(next, AUTOPLAY_DELAY)
-}
-
-watch(isPlaying, restartTimer)
-
-function togglePause() {
-  isPausedByUser.value = !isPausedByUser.value
-}
-
-// Solo el foco de teclado detiene el pase: un clic con el ratón deja el foco
-// en el botón y, si no, el carrusel no volvería a moverse hasta hacer clic fuera.
-function onFocusIn(event: FocusEvent) {
-  hasKeyboardFocus.value = (event.target as HTMLElement).matches(':focus-visible')
-}
-
-function onFocusOut(event: FocusEvent) {
-  if (!root.value?.contains(event.relatedTarget as Node | null)) hasKeyboardFocus.value = false
-}
-
 // ── Entorno ─────────────────────────────────────────────────────────────────
 
-const desktopQuery = window.matchMedia('(min-width: 64rem)')
 const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
 
-function syncMedia() {
-  isDesktop.value = desktopQuery.matches
+function syncMotion() {
   prefersReducedMotion.value = motionQuery.matches
 }
 
-function onVisibilityChange() {
-  isPageVisible.value = document.visibilityState === 'visible'
-}
-
-let visibilityObserver: IntersectionObserver | null = null
 let resizeObserver: ResizeObserver | null = null
 
 onMounted(() => {
-  syncMedia()
-  desktopQuery.addEventListener('change', syncMedia)
-  motionQuery.addEventListener('change', syncMedia)
-  document.addEventListener('visibilitychange', onVisibilityChange)
-
-  if (root.value) {
-    visibilityObserver = new IntersectionObserver(
-      ([entry]) => {
-        isOnScreen.value = !!entry?.isIntersecting
-      },
-      { threshold: 0.35 },
-    )
-    visibilityObserver.observe(root.value)
-  }
+  syncMotion()
+  motionQuery.addEventListener('change', syncMotion)
 
   // Al cambiar el tamaño, la diapositiva actual sigue alineada.
   if (track.value) {
@@ -277,26 +249,18 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   stopAnimation()
-  window.clearTimeout(autoplayTimer)
-  window.clearTimeout(settleTimer)
-  desktopQuery.removeEventListener('change', syncMedia)
-  motionQuery.removeEventListener('change', syncMedia)
-  document.removeEventListener('visibilitychange', onVisibilityChange)
-  visibilityObserver?.disconnect()
+  cancelAnimationFrame(indicatorFrame)
+  window.clearTimeout(normalizeTimer)
+  motionQuery.removeEventListener('change', syncMotion)
   resizeObserver?.disconnect()
 })
 </script>
 
 <template>
   <section
-    ref="root"
     class="carousel"
     :aria-label="t('history.carousel.label')"
     :aria-roledescription="t('history.carousel.roleCarousel')"
-    @mouseenter="isHovered = true"
-    @mouseleave="isHovered = false"
-    @focusin="onFocusIn"
-    @focusout="onFocusOut"
   >
     <!-- La pista es enfocable para poder desplazarla con las flechas del teclado. -->
     <div
@@ -391,30 +355,6 @@ onBeforeUnmount(() => {
         <span class="tabular">{{ index + 1 }}</span>
         <span class="carousel__count-total"> / {{ total }}</span>
       </p>
-
-      <button
-        v-if="canAutoplay"
-        type="button"
-        class="carousel__button carousel__button--icon"
-        :aria-label="isPausedByUser ? t('history.carousel.play') : t('history.carousel.pause')"
-        @click="togglePause"
-      >
-        <svg
-          v-if="isPausedByUser"
-          viewBox="0 0 16 16"
-          aria-hidden="true"
-          class="is-filled"
-        >
-          <path d="M5 3.5v9l7.5-4.5z" />
-        </svg>
-        <svg
-          v-else
-          viewBox="0 0 16 16"
-          aria-hidden="true"
-        >
-          <path d="M5.5 3.5v9M10.5 3.5v9" />
-        </svg>
-      </button>
     </div>
 
     <p
@@ -580,17 +520,6 @@ onBeforeUnmount(() => {
     stroke: currentColor;
     stroke-width: 1.5;
   }
-
-  svg.is-filled {
-    fill: currentColor;
-    stroke: none;
-  }
-}
-
-.carousel__button--icon {
-  justify-content: center;
-  width: 2.75rem;
-  padding: 0;
 }
 
 .carousel__count {
@@ -598,10 +527,6 @@ onBeforeUnmount(() => {
   font-family: var(--font-carta);
   font-size: var(--text-lg);
   letter-spacing: 0.06em;
-
-  @include from('lg') {
-    margin-inline-end: var(--space-3);
-  }
 }
 
 .carousel__count-total {

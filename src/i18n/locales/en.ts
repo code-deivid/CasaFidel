@@ -60,8 +60,6 @@ const en: MessageSchema = {
       previous: 'Previous',
       next: 'Next',
       goTo: 'Show photo {current} of {total}',
-      pause: 'Pause the slideshow',
-      play: 'Play the slideshow',
     },
   },
 

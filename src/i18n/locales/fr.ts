@@ -61,8 +61,6 @@ const fr: MessageSchema = {
       previous: 'Précédente',
       next: 'Suivante',
       goTo: 'Voir la photo {current} sur {total}',
-      pause: 'Mettre le diaporama en pause',
-      play: 'Relancer le diaporama',
     },
   },
 

@@ -26,7 +26,7 @@ npm run images     # regenera las fotos optimizadas (necesita ffmpeg)
 |---|---|---|---|
 | 1 | Cabecera | `SiteHeader.vue` + `LanguageSwitch.vue` | Fija. Monograma + «Casa Fidel», enlaces (Historia, Carta, Tío Pedro, Visítanos), **selector de idioma** (cuatro banderas en línea en escritorio; desplegable con bandera y código en móvil y tableta) y «Reservar» (llama al 980 681 471; el número se ve desde 80rem). En móvil (< 64rem): marca, desplegable de idioma y botón de menú; el panel termina con «Reservar · 980 681 471». |
 | 2 | Portada | `HeroSection.vue` | `h1` con «Restaurante Casa Fidel» y el lema; resumen, **«Reservar · 980 681 471»** (acción principal), «Ver la carta» y la **fachada real** con el cartel (a sangre solo en móvil). Única animación de entrada. |
-| 3 | Desde 1955 | `HistorySection.vue` + `HistoryCarousel.vue` | El único campo granate. La historia que el restaurante publica en su Facebook (fundación en 1955, ternera alistana) y lo que eso significa en la carta, junto a un **carrusel** con dos fotos del comedor y dos de la barra (escritorio: autoplay, «Anterior» / «Siguiente», contador y pausa; móvil: una foto por vez, deslizar, puntos y «1 / 4»). |
+| 3 | Desde 1955 | `HistorySection.vue` + `HistoryCarousel.vue` | El único campo granate. La historia que el restaurante publica en su Facebook (fundación en 1955, ternera alistana) y lo que eso significa en la carta, junto a un **carrusel** con dos fotos del comedor y dos de la barra (escritorio: «Anterior» / «Siguiente» y contador; móvil: una foto por vez, deslizar, puntos y «1 / 4»). |
 | 4 | La carta | `MenuSection.vue` + `MenuCategory.vue` | La carta completa, traducida, en dos columnas (una en móvil) y con la marca de agua CF. En móvil, **barra de categorías fija** que subraya en granate la categoría visible. Precios con formato del idioma. |
 | 5 | Tío Pedro | `TioPedroSection.vue` | Bloque breve sobre la relación con Carnicería y Embutidos Tío Pedro, su **logotipo** a tamaño de sello y el enlace «Descubrir Tío Pedro» (pestaña nueva, `noopener`). |
 | 6 | Visítanos | `VisitSection.vue` + `OpeningHours.vue` | La **foto de las personas**, la dirección, «Llamar al 980 681 471», «Cómo llegar» y la tabla de **horario**. |
@@ -122,11 +122,11 @@ estructurados (`telephone: +34 980 681 471`). Cambiarlo ahí lo cambia en todas 
 
 **Carrusel.** `HistoryCarousel.vue`: pista con CSS Scroll Snap, una foto entera por vez (en móvil se
 desliza con el dedo; debajo, puntos de paginación y «1 / 4», sin botones) y una copia de la primera
-foto al final para el bucle. En escritorio, y solo sin
-«movimiento reducido», pasa una foto cada 7 s de derecha a izquierda; se detiene con el ratón encima,
-con el foco de teclado dentro, fuera de pantalla o con la pestaña oculta, y cada interacción manual
-reinicia la cuenta. Botones «Anterior» / «Siguiente», contador y pausa; flechas del teclado sobre la
-pista.
+foto al final para el bucle. Puntos y contador se actualizan durante el gesto (como mucho una vez por
+fotograma, con `requestAnimationFrame`); cuando la pista se detiene, si ha quedado en la copia salta a
+la primera real. En escritorio, botones «Anterior» / «Siguiente» y contador; flechas del teclado sobre
+la pista. **Sin pase automático**: sin botón de pausa no cumpliría WCAG 2.2.2 (pausar al pasar el ratón
+o al enfocar no basta), así que las fotos solo cambian cuando el visitante lo pide.
 
 **Índice activo de la carta (móvil).** Un `IntersectionObserver` vigila las categorías en la franja
 que queda bajo la cabecera y la barra; la primera visible se subraya en granate (`aria-current`) y la
@@ -145,7 +145,7 @@ página se desplaza. `scroll-margin-top` evita que la barra tape el título.
 - **Fachada en la portada.** El cartel real «Casa fidel» identifica el restaurante al instante y
   sustituye a la foto gastronómica provisional. Ya no queda ninguna foto ajena a la casa.
 - **Carrusel del local.** Las cuatro fotos interiores juntas enseñan la casa entera sin alargar la
-  página; pase automático lento, con pausa, y nunca en móvil ni con movimiento reducido.
+  página. Sin pase automático (ver «Carrusel»).
 - **Personas en «Visítanos».** Grande, junto a la dirección y el horario: la invitación a venir tiene
   caras. Sin pie de foto, nombres ni cargos. Uso autorizado por Fidel.
 - **Tío Pedro después de la carta**, sobre fondo claro y con su logotipo pequeño, sin enlace propio:
