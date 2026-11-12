@@ -230,9 +230,9 @@ onBeforeUnmount(() => {
   line-height: 1;
   white-space: nowrap;
 
-  // En los móviles más estrechos solo cabe el monograma junto a las banderas;
-  // el enlace conserva su nombre accesible y la portada dice el nombre enseguida.
-  @media (max-width: 23.4375rem) {
+  // En los móviles más estrechos (< 336px) solo cabe el monograma junto al
+  // idioma y el menú; el enlace conserva su nombre accesible.
+  @media (max-width: 21rem) {
     display: none;
   }
 }

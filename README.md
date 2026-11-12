@@ -24,13 +24,13 @@ npm run images     # regenera las fotos optimizadas (necesita ffmpeg)
 
 | Orden | Sección | Componente | Qué hace |
 |---|---|---|---|
-| 1 | Cabecera | `SiteHeader.vue` + `LanguageSwitch.vue` | Fija. Monograma + «Casa Fidel», enlaces (Historia, Carta, Tío Pedro, Visítanos), **cuatro banderas de idioma** y «Reservar» (llama al 980 681 471; el número se ve desde 80rem). En móvil (< 64rem): marca, banderas y botón de menú; el panel termina con «Reservar · 980 681 471». |
+| 1 | Cabecera | `SiteHeader.vue` + `LanguageSwitch.vue` | Fija. Monograma + «Casa Fidel», enlaces (Historia, Carta, Tío Pedro, Visítanos), **selector de idioma** (cuatro banderas en línea en escritorio; desplegable con bandera y código en móvil y tableta) y «Reservar» (llama al 980 681 471; el número se ve desde 80rem). En móvil (< 64rem): marca, desplegable de idioma y botón de menú; el panel termina con «Reservar · 980 681 471». |
 | 2 | Portada | `HeroSection.vue` | `h1` con «Restaurante Casa Fidel» y el lema; resumen, **«Reservar · 980 681 471»** (acción principal), «Ver la carta» y la **fachada real** con el cartel (a sangre solo en móvil). Única animación de entrada. |
-| 3 | Desde 1955 | `HistorySection.vue` + `HistoryCarousel.vue` | El único campo granate. La historia que el restaurante publica en su Facebook (fundación en 1955, ternera alistana) y lo que eso significa en la carta, junto a un **carrusel** con dos fotos del comedor y dos de la barra. |
+| 3 | Desde 1955 | `HistorySection.vue` + `HistoryCarousel.vue` | El único campo granate. La historia que el restaurante publica en su Facebook (fundación en 1955, ternera alistana) y lo que eso significa en la carta, junto a un **carrusel** con dos fotos del comedor y dos de la barra (escritorio: autoplay, «Anterior» / «Siguiente», contador y pausa; móvil: una foto por vez, deslizar, puntos y «1 / 4»). |
 | 4 | La carta | `MenuSection.vue` + `MenuCategory.vue` | La carta completa, traducida, en dos columnas (una en móvil) y con la marca de agua CF. En móvil, **barra de categorías fija** que subraya en granate la categoría visible. Precios con formato del idioma. |
 | 5 | Tío Pedro | `TioPedroSection.vue` | Bloque breve sobre la relación con Carnicería y Embutidos Tío Pedro, su **logotipo** a tamaño de sello y el enlace «Descubrir Tío Pedro» (pestaña nueva, `noopener`). |
 | 6 | Visítanos | `VisitSection.vue` + `OpeningHours.vue` | La **foto de las personas**, la dirección, «Llamar al 980 681 471», «Cómo llegar» y la tabla de **horario**. |
-| 7 | Pie | `SiteFooter.vue` | Marca, dirección + Maps, teléfono, índice y año. |
+| 7 | Pie | `SiteFooter.vue` | Marca, dirección + Maps, teléfono, índice, año y enlaces a **Instagram y Facebook**. |
 
 Piezas pequeñas en `src/components/ui/`:
 
@@ -38,8 +38,9 @@ Piezas pequeñas en `src/components/ui/`:
   abre en pestaña nueva con `rel="noopener"` y lo anuncia a lectores de pantalla.
 - `PriceLine.vue`: nombre a la izquierda; precio en Antonio con cifras tabulares, formateado con
   `formatPrice()` de `src/i18n/index.ts` (12,00 € en es/pt/fr; €12.00 en inglés).
-- `ResponsiveImage.vue`: `<picture>` AVIF + WebP con `srcset`, `width`/`height` para no saltar y
+- `ResponsiveImage.vue`: un `<img>` WebP con `srcset`/`sizes`, `width`/`height` para no saltar y
   carga diferida salvo la portada. Recibe el texto alternativo ya traducido.
+- `LocaleFlag.vue`: las cuatro banderas en SVG (decorativas; el nombre del idioma va en el botón).
 - `DevNote.vue`: nota para el equipo que solo existe en `npm run dev`; el build no la incluye.
 
 ## Idiomas (vue-i18n)
@@ -54,7 +55,7 @@ src/i18n/
     en.ts pt.ts fr.ts   tipados como MessageSchema
 ```
 
-- **Español** por defecto. Cada bandera de la cabecera es un botón (nombre accesible: el idioma en su propia lengua; `aria-pressed` en el activo) que llama a `setLocale()`, que cambia el idioma
+- **Español** por defecto. En escritorio, cada bandera de la cabecera es un botón (nombre accesible: el idioma en su propia lengua; `aria-pressed` en el activo); en móvil y tableta, un desplegable (bandera + código, lista con banderas, el activo marcado con ✓; teclado: flechas, Inicio/Fin, Escape). Ambos llaman a `setLocale()`, que cambia el idioma
   de forma reactiva (sin recargar), lo guarda en `localStorage` (`casa-fidel:idioma`) y actualiza
   `<html lang>`, `<title>`, la meta descripción y `og:title` / `og:description` / `og:locale`. Al
   volver, `main.ts` aplica el idioma guardado antes de montar la app. Si el almacenamiento no está
@@ -93,7 +94,7 @@ src/data/
 public/
   logos/                 logotipos SVG (identidad confirmada: no modificar)
   images/restaurante/    ORIGINALES de las fotos; no se publican (vite.config.ts los excluye)
-  images/fotos/          versiones optimizadas AVIF/WebP (generadas por `npm run images`)
+  images/fotos/          versiones optimizadas, solo WebP (generadas por `npm run images`)
   images/referencias/    material de trabajo (carta, cartel, logo); no se publica
 ```
 
@@ -107,12 +108,21 @@ WebP con el fondo claro vuelto transparente (`fondoTransparente` en el script). 
 regístrala en `scripts/optimizar-imagenes.mjs`, ejecuta `npm run images` y declárala en `images.ts`
 con su texto alternativo en los cuatro idiomas.
 
+**Solo WebP.** Las fotos se publican únicamente en WebP (`public/images/fotos/<nombre>-<ancho>.webp`).
+`ResponsiveImage` usa un solo `<img>` con `srcset`: no hay `<source>` de otros formatos. Antes había un
+`<source type="image/avif">`; al borrar los AVIF, el navegador seguía eligiéndolo (lo soporta), recibía
+404 y no volvía al WebP, por eso no se veían las fotos en Vercel.
+
+**Redes sociales.** `socialLinks` en `src/data/site.ts` (Instagram y Facebook): pie de página, en
+pestaña nueva con `rel="noopener noreferrer"`, y `sameAs` en los datos estructurados.
+
 **Teléfono.** `980 681 471`, en `src/data/site.ts` (`phone`). El enlace es `tel:+34980681471`
 (`phoneHref`). Aparece en la cabecera, la portada, el panel móvil, «Visítanos», el pie y los datos
 estructurados (`telephone: +34 980 681 471`). Cambiarlo ahí lo cambia en todas partes.
 
-**Carrusel.** `HistoryCarousel.vue`: pista con CSS Scroll Snap (en móvil se desliza con el dedo y la
-foto siguiente asoma) y una copia de la primera foto al final para el bucle. En escritorio, y solo sin
+**Carrusel.** `HistoryCarousel.vue`: pista con CSS Scroll Snap, una foto entera por vez (en móvil se
+desliza con el dedo; debajo, puntos de paginación y «1 / 4», sin botones) y una copia de la primera
+foto al final para el bucle. En escritorio, y solo sin
 «movimiento reducido», pasa una foto cada 7 s de derecha a izquierda; se detiene con el ratón encima,
 con el foco de teclado dentro, fuera de pantalla o con la pestaña oculta, y cada interacción manual
 reinicia la cuenta. Botones «Anterior» / «Siguiente», contador y pausa; flechas del teclado sobre la
@@ -149,5 +159,6 @@ página se desplaza. `scroll-margin-top` evita que la barra tape el título.
 - [ ] Confirmar qué es el **«solomillo francés»** para afinar su traducción (`reviewNote` en `menu.ts`).
 - [ ] Revisar las traducciones con un hablante nativo de inglés, portugués y francés.
 - [ ] Verificar cualquier dato histórico adicional (nombres, generaciones) antes de añadirlo.
-- [ ] Decidir dominio: rellenar `siteUrl` en `site.ts`, añadir `og:url` y hacer absoluta la ruta de
-      `og:image` en `index.html`.
+- [ ] Decidir dominio: rellenar `siteUrl` en `site.ts` y añadir `og:url` en `index.html`.
+- [ ] Si se quiere vista previa al compartir, crear una imagen 1200×630 y añadir `og:image` (con URL
+      absoluta) en `index.html`. Ahora no hay ninguna.

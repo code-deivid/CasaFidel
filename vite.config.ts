@@ -3,7 +3,7 @@ import { rmSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { defineConfig, type Plugin } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import { site } from './src/data/site.ts'
+import { site, socialLinks } from './src/data/site.ts'
 import { openingHours, type DayHours, type TimeRange } from './src/data/hours.ts'
 import es from './src/i18n/locales/es.ts'
 
@@ -75,6 +75,7 @@ function restaurantStructuredData(): Plugin {
       addressCountry: 'ES',
     },
     telephone: `+34 ${site.phone}`,
+    sameAs: socialLinks.map((link) => link.url),
     openingHoursSpecification: openingHoursSpecification(),
   }
   if (site.siteUrl) data.url = site.siteUrl

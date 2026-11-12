@@ -35,6 +35,12 @@ export const site: SiteInfo = {
   siteUrl: null,
 }
 
+/** Perfiles oficiales del restaurante. También van en `sameAs` (datos estructurados). */
+export const socialLinks = [
+  { network: 'Instagram', url: 'https://www.instagram.com/restaurantecasafidel/' },
+  { network: 'Facebook', url: 'https://www.facebook.com/restaurantecasafidel' },
+] as const
+
 /** Carnicería y embutidos vinculados al restaurante. */
 export const tioPedroUrl = 'https://embutidostiopedro.es/'
 

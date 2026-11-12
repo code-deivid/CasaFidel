@@ -30,21 +30,17 @@ const { t } = useI18n()
 
         <!-- El logotipo, pequeño y sobre el mismo suelo: una firma, no un anuncio.
              No es un enlace; el único enlace del bloque es «Descubrir Tío Pedro». -->
-        <picture class="tio-pedro__logo">
-          <source
-            type="image/webp"
-            :srcset="imageSrcSet(logo, 'webp')"
-            sizes="11rem"
-          >
-          <img
-            :src="imageFallbackSrc(logo)"
-            :alt="t('images.tioPedroLogo')"
-            :width="logo.width"
-            :height="logo.height"
-            loading="lazy"
-            decoding="async"
-          >
-        </picture>
+        <img
+          class="tio-pedro__logo"
+          :src="imageFallbackSrc(logo)"
+          :srcset="imageSrcSet(logo)"
+          sizes="(min-width: 64rem) 11rem, 9rem"
+          :alt="t('images.tioPedroLogo')"
+          :width="logo.width"
+          :height="logo.height"
+          loading="lazy"
+          decoding="async"
+        >
       </div>
 
       <div class="tio-pedro__text">
@@ -105,14 +101,10 @@ const { t } = useI18n()
 .tio-pedro__logo {
   display: block;
   width: 9rem;
+  height: auto;
 
   @include from('lg') {
     width: 11rem;
-  }
-
-  img {
-    width: 100%;
-    height: auto;
   }
 }
 

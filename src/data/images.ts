@@ -13,7 +13,7 @@ export interface SiteImage {
   id: 'facade' | 'diningRoom1' | 'diningRoom2' | 'bar1' | 'bar2' | 'people' | 'tioPedroLogo'
   /** Nombre base generado por el script, sin ancho ni extensión. */
   file: string
-  /** Anchos disponibles en public/images/fotos. */
+  /** Anchos disponibles en public/images/fotos (un WebP por ancho). */
   widths: number[]
   /** Dimensiones originales; sirven para reservar espacio y evitar saltos. */
   width: number
@@ -22,11 +22,12 @@ export interface SiteImage {
   focus?: string
 }
 
+// Todas las versiones publicadas son WebP: public/images/fotos/<file>-<ancho>.webp
 const PHOTO_FOLDER = '/images/fotos'
 
-export function imageSrcSet(image: SiteImage, format: 'avif' | 'webp'): string {
+export function imageSrcSet(image: SiteImage): string {
   return image.widths
-    .map((width) => `${PHOTO_FOLDER}/${image.file}-${width}.${format} ${width}w`)
+    .map((width) => `${PHOTO_FOLDER}/${image.file}-${width}.webp ${width}w`)
     .join(', ')
 }
 

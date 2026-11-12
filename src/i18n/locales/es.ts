@@ -17,6 +17,7 @@ export default {
     home: 'Casa Fidel, inicio',
     newTab: '(se abre en una pestaña nueva)',
     mapsNewTab: '(Google Maps, se abre en una pestaña nueva)',
+    social: 'Redes sociales',
   },
 
   nav: {
@@ -62,6 +63,7 @@ export default {
       position: '{current} de {total}',
       previous: 'Anterior',
       next: 'Siguiente',
+      goTo: 'Ver la foto {current} de {total}',
       pause: 'Pausar el pase de fotos',
       play: 'Reanudar el pase de fotos',
     },

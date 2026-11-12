@@ -7,7 +7,10 @@ import { historySlides } from '@/data/images'
 // Carrusel de las cuatro fotos del local (comedor y barra).
 //
 // - La pista es un contenedor con desplazamiento horizontal y CSS Scroll Snap:
-//   en móvil se desliza con el dedo, sin JavaScript de gestos.
+//   en móvil se desliza con el dedo, sin JavaScript de gestos. Una foto entera
+//   por vez, sin la siguiente asomando.
+// - Móvil y tableta (< 64rem): puntos de paginación y «1 / 4», sin botones.
+//   Escritorio: «Anterior», «Siguiente», contador y pausa.
 // - Bucle sin saltos: tras la última foto va una copia de la primera
 //   (oculta a lectores de pantalla). Al llegar a la copia, la pista vuelve a la
 //   primera real sin animación; visualmente es la misma imagen.
@@ -170,6 +173,12 @@ function previous() {
   animateTo(offsetOf(index.value))
 }
 
+function goTo(target: number) {
+  if (target === index.value) return
+  index.value = target
+  animateTo(offsetOf(target))
+}
+
 function announce() {
   const slide = slides[index.value]
   if (!slide) return
@@ -186,6 +195,11 @@ function onPrevious() {
 
 function onNext() {
   next()
+  announce()
+}
+
+function onDot(target: number) {
+  goTo(target)
   announce()
 }
 
@@ -306,7 +320,7 @@ onBeforeUnmount(() => {
           <ResponsiveImage
             :image="slide.image"
             :alt="t(`images.${slide.image.id}`)"
-            sizes="(min-width: 64rem) 52vw, (min-width: 48rem) 72vw, 86vw"
+            sizes="(min-width: 64rem) 52vw, 100vw"
           />
         </div>
         <figcaption>{{ t(`history.${slide.caption}`) }}</figcaption>
@@ -322,16 +336,17 @@ onBeforeUnmount(() => {
           <ResponsiveImage
             :image="slides[0].image"
             alt=""
-            sizes="(min-width: 64rem) 52vw, (min-width: 48rem) 72vw, 86vw"
+            sizes="(min-width: 64rem) 52vw, 100vw"
           />
         </div>
       </div>
     </div>
 
     <div class="carousel__controls">
+      <!-- Escritorio: anterior / siguiente. -->
       <button
         type="button"
-        class="carousel__button"
+        class="carousel__button carousel__step"
         @click="onPrevious"
       >
         <svg
@@ -344,7 +359,7 @@ onBeforeUnmount(() => {
       </button>
       <button
         type="button"
-        class="carousel__button"
+        class="carousel__button carousel__step"
         @click="onNext"
       >
         {{ t('history.carousel.next') }}
@@ -355,6 +370,19 @@ onBeforeUnmount(() => {
           <path d="m6 3 5 5-5 5" />
         </svg>
       </button>
+
+      <!-- Móvil y tableta: puntos de paginación (también se puede deslizar). -->
+      <div class="carousel__dots">
+        <button
+          v-for="(slide, i) in slides"
+          :key="slide.image.id"
+          type="button"
+          class="carousel__dot"
+          :aria-label="t('history.carousel.goTo', { current: i + 1, total })"
+          :aria-current="i === index ? 'true' : undefined"
+          @click="onDot(i)"
+        />
+      </div>
 
       <p
         class="carousel__count"
@@ -405,18 +433,14 @@ onBeforeUnmount(() => {
   min-width: 0;
 }
 
-// Móvil y tableta: la foto siguiente asoma por la derecha y la pista llega
-// al borde de la pantalla: así se entiende que se desliza. En escritorio,
-// una foto entera dentro de la columna, sin salirse del margen.
+// Una foto entera por vez, dentro del margen de la página. Entre foto y foto
+// hay un hueco que solo se ve mientras se desliza.
 .carousel__track {
   position: relative;
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: 86%;
-  gap: var(--space-3);
-  margin-inline: calc(var(--page-gutter) * -1);
-  padding-inline: var(--page-gutter);
-  scroll-padding-inline: var(--page-gutter);
+  grid-auto-columns: 100%;
+  gap: var(--space-4);
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
@@ -431,16 +455,8 @@ onBeforeUnmount(() => {
     outline-offset: 4px;
   }
 
-  @include from('md') {
-    grid-auto-columns: 72%;
-  }
-
   @include from('lg') {
-    grid-auto-columns: 100%;
     gap: var(--space-5);
-    margin-inline: 0;
-    padding-inline: 0;
-    scroll-padding-inline: 0;
   }
 }
 
@@ -464,7 +480,64 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
-  margin-top: var(--space-5);
+  margin-top: var(--space-4);
+
+  @include from('lg') {
+    margin-top: var(--space-5);
+  }
+}
+
+// Doble clase: tiene que ganar al `display` de `.carousel__button`.
+.carousel__button.carousel__step {
+  display: none;
+
+  @include from('lg') {
+    display: inline-flex;
+  }
+}
+
+// Puntos: objetivo de 1,5 × 2,75rem; el punto visible mide 0,5rem.
+// El activo, a plena opacidad y algo mayor (no solo color).
+.carousel__dots {
+  display: flex;
+  margin-inline-start: calc(var(--space-2) * -1);
+
+  @include from('lg') {
+    display: none;
+  }
+}
+
+.carousel__dot {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 2.75rem;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+
+  &::before {
+    content: '';
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--color-on-granate);
+    opacity: 0.35;
+    transition:
+      opacity var(--duration-ui) ease,
+      transform var(--duration-ui) var(--ease-out);
+  }
+
+  &[aria-current='true']::before {
+    opacity: 1;
+    transform: scale(1.25);
+  }
+
+  &:focus-visible {
+    outline-color: var(--color-on-granate);
+    outline-offset: -4px;
+  }
 }
 
 // Botones de contorno sobre el granate, con la voz de la carta.
@@ -521,10 +594,14 @@ onBeforeUnmount(() => {
 }
 
 .carousel__count {
-  margin-inline: auto var(--space-3);
+  margin-inline-start: auto;
   font-family: var(--font-carta);
   font-size: var(--text-lg);
   letter-spacing: 0.06em;
+
+  @include from('lg') {
+    margin-inline-end: var(--space-3);
+  }
 }
 
 .carousel__count-total {
@@ -534,6 +611,10 @@ onBeforeUnmount(() => {
 @media (prefers-reduced-motion: reduce) {
   .carousel__button:active {
     transform: none;
+  }
+
+  .carousel__dot::before {
+    transition: none;
   }
 }
 </style>

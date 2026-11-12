@@ -14,6 +14,7 @@ const fr: MessageSchema = {
     home: 'Casa Fidel, accueil',
     newTab: '(s’ouvre dans un nouvel onglet)',
     mapsNewTab: '(Google Maps, s’ouvre dans un nouvel onglet)',
+    social: 'Réseaux sociaux',
   },
 
   nav: {
@@ -59,6 +60,7 @@ const fr: MessageSchema = {
       position: '{current} sur {total}',
       previous: 'Précédente',
       next: 'Suivante',
+      goTo: 'Voir la photo {current} sur {total}',
       pause: 'Mettre le diaporama en pause',
       play: 'Relancer le diaporama',
     },

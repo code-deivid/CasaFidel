@@ -13,6 +13,7 @@ const en: MessageSchema = {
     home: 'Casa Fidel, home',
     newTab: '(opens in a new tab)',
     mapsNewTab: '(Google Maps, opens in a new tab)',
+    social: 'Social media',
   },
 
   nav: {
@@ -58,6 +59,7 @@ const en: MessageSchema = {
       position: '{current} of {total}',
       previous: 'Previous',
       next: 'Next',
+      goTo: 'Show photo {current} of {total}',
       pause: 'Pause the slideshow',
       play: 'Play the slideshow',
     },

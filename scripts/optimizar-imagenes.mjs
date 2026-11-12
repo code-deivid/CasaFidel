@@ -1,4 +1,4 @@
-// Genera versiones AVIF y WebP en varios anchos a partir de las fotos originales.
+// Genera versiones WebP en varios anchos a partir de las fotos originales (solo WebP).
 // Requisito: tener ffmpeg instalado y disponible en el PATH.
 // Uso: npm run images
 //
@@ -15,8 +15,7 @@ const CARPETA_DESTINO = 'public/images/fotos'
 
 // `anchos` sustituye a la lista general cuando una imagen se muestra siempre
 // pequeña (el logotipo de Tío Pedro), y entonces no se genera el ancho original.
-// `fondoTransparente` vuelve transparente ese color de fondo y genera solo WebP
-// con canal alfa: un logotipo con recuadro claro sobre el suelo de la web se ve
+// `fondoTransparente` vuelve transparente ese color de fondo (WebP con canal alfa): un logotipo con recuadro claro sobre el suelo de la web se ve
 // como una pegatina.
 const FOTOS = [
   { origen: 'fachada.webp', nombre: 'fachada', anchoOriginal: 1448 },
@@ -57,9 +56,6 @@ for (const foto of FOTOS) {
     execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', rutaOrigen, '-vf', escala,
       '-c:v', 'libwebp', '-quality', '78', `${base}.webp`])
 
-    execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', rutaOrigen, '-vf', `${escala},format=yuv420p`,
-      '-c:v', 'libaom-av1', '-still-picture', '1', '-crf', '32', '-cpu-used', '6', `${base}.avif`])
-
-    console.log(`✓ ${base}.webp / .avif`)
+    console.log(`✓ ${base}.webp`)
   }
 }

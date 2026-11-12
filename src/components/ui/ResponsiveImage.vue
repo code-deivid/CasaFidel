@@ -2,6 +2,7 @@
 import { imageFallbackSrc, imageSrcSet, type SiteImage } from '@/data/images'
 
 // Rellena siempre el contenedor del padre (object-fit: cover).
+// Solo WebP: un único `<img>` con `srcset`; el navegador elige el ancho.
 // El padre decide la proporción con `aspect-ratio` o con su altura.
 // El texto alternativo llega ya traducido (`t('images.<id>')`).
 const props = withDefaults(
@@ -19,28 +20,18 @@ const props = withDefaults(
 
 <template>
   <div class="responsive-image">
-    <picture>
-      <source
-        type="image/avif"
-        :srcset="imageSrcSet(props.image, 'avif')"
-        :sizes="props.sizes"
-      >
-      <source
-        type="image/webp"
-        :srcset="imageSrcSet(props.image, 'webp')"
-        :sizes="props.sizes"
-      >
-      <img
-        :src="imageFallbackSrc(props.image)"
-        :alt="props.alt"
-        :width="props.image.width"
-        :height="props.image.height"
-        :loading="props.priority ? 'eager' : 'lazy'"
-        :fetchpriority="props.priority ? 'high' : 'auto'"
-        decoding="async"
-        :style="props.image.focus ? { objectPosition: props.image.focus } : undefined"
-      >
-    </picture>
+    <img
+      :src="imageFallbackSrc(props.image)"
+      :srcset="imageSrcSet(props.image)"
+      :sizes="props.sizes"
+      :alt="props.alt"
+      :width="props.image.width"
+      :height="props.image.height"
+      :loading="props.priority ? 'eager' : 'lazy'"
+      :fetchpriority="props.priority ? 'high' : 'auto'"
+      decoding="async"
+      :style="props.image.focus ? { objectPosition: props.image.focus } : undefined"
+    >
   </div>
 </template>
 
